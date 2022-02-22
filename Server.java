@@ -50,7 +50,6 @@ public class Server {
         }
 
         private void serverMainLoop(Connection connection, String userName) throws IOException, ClassNotFoundException {
-
             while (true) {
                 Message response = connection.receive();
                 MessageType messageType = response.getType();
@@ -68,7 +67,41 @@ public class Server {
 
         @Override
         public void run() {
+            ConsoleHelper.writeMessage("" + socket.getRemoteSocketAddress());
 
+            Connection connection = null;
+            String userName = "";
+
+            try {
+                connection = new Connection(socket);
+                userName = serverHandshake(connection);
+
+
+
+                serverHandshake(connection);
+
+                sendBroadcastMessage(new Message(MessageType.USER_ADDED, userName));
+
+                notifyUsers(connection, userName);
+
+                serverMainLoop(connection, userName);
+
+                connectionMap.remove(userName);
+
+                sendBroadcastMessage(new Message(MessageType.USER_REMOVED, userName));
+
+            } catch (IOException | ClassNotFoundException e) {
+                ConsoleHelper.writeMessage(e.getMessage());
+            } finally {
+                try {
+                    if (connection != null){
+                        connection.close();
+                        ConsoleHelper.writeMessage("connection closed");
+                    }
+                } catch (IOException io){
+                    ConsoleHelper.writeMessage(io.getMessage());
+                }
+            }
         }
     }
 
@@ -105,5 +138,6 @@ public class Server {
             }
     }
 }
+
 
 
