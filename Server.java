@@ -38,6 +38,16 @@ public class Server {
             return s;
         }
 
+        private void notifyUsers(Connection connection, String userName) throws IOException {
+            for (Map.Entry<String, Connection>  pair : connectionMap.entrySet()){
+                String clientName = pair.getKey();
+
+                if (!(clientName.equals(userName))){
+                    connection.send(new Message(MessageType.USER_ADDED, clientName));
+                }
+
+            }
+        }
 
         @Override
         public void run() {
@@ -78,3 +88,4 @@ public class Server {
             }
     }
 }
+
