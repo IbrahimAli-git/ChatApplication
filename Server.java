@@ -49,6 +49,23 @@ public class Server {
             }
         }
 
+        private void serverMainLoop(Connection connection, String userName) throws IOException, ClassNotFoundException {
+
+            while (true) {
+                Message response = connection.receive();
+                MessageType messageType = response.getType();
+                String data = response.getData();
+
+                if (messageType == MessageType.TEXT) {
+                    String generatedMessage = userName + ": " + data;
+                    sendBroadcastMessage(new Message(MessageType.TEXT, generatedMessage));
+                } else {
+                    ConsoleHelper.writeMessage("Error not text");
+                }
+            }
+
+        }
+
         @Override
         public void run() {
 
@@ -88,4 +105,5 @@ public class Server {
             }
     }
 }
+
 
