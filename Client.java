@@ -14,9 +14,44 @@ public class Client {
     private volatile boolean clientConnected = false;
 
 
+    public static void main(String[] args) {
+        Client client = new Client();
+        client.run();
+    }
+
 
     public class SocketThread extends Thread {
+    }
 
+
+    public void run() {
+         SocketThread socketThread = getSocketThread();
+         socketThread.setDaemon(true);
+         socketThread.start();
+
+         synchronized (this){
+             try {
+                 wait();
+             } catch (InterruptedException e) {
+                 ConsoleHelper.writeMessage("An error occurred while running the client.");
+                 return;
+             }
+         }
+
+         if (clientConnected) ConsoleHelper.writeMessage("A connection has been established. To exit, enter 'exit'.");
+         else ConsoleHelper.writeMessage("An error occurred while running the client.");
+
+         while (clientConnected){
+             String message = ConsoleHelper.readString();
+
+             if (message.equals("exit")){
+                 break;
+             }
+
+             if (shouldSendTextFromConsole()){
+                 sendTextMessage(message);
+             }
+         }
     }
 
     protected String getServerAddress() throws IOException {
@@ -47,8 +82,8 @@ public class Client {
         try {
             connection.send(new Message(MessageType.TEXT, text));
         } catch (IOException e) {
+            ConsoleHelper.writeMessage("Unable to send message");
             clientConnected = false;
         }
     }
 }
-
