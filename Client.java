@@ -21,37 +21,56 @@ public class Client {
 
 
     public class SocketThread extends Thread {
+        protected void processIncomingMessage(String message){
+            ConsoleHelper.writeMessage(message);
+        }
+
+        protected void informAboutAddingNewUser(String userName){
+            ConsoleHelper.writeMessage(userName + " has joined the chat.");
+        }
+
+        protected void informAboutDeletingNewUser(String userName){
+            ConsoleHelper.writeMessage(userName + " has left the chat.");
+        }
+
+        protected void notifyConnectionStatusChanged(boolean clientConnected){
+            Client.this.clientConnected = clientConnected;
+
+            synchronized (Client.this){
+                Client.this.notify();
+            }
+        }
     }
 
 
     public void run() {
-         SocketThread socketThread = getSocketThread();
-         socketThread.setDaemon(true);
-         socketThread.start();
+        SocketThread socketThread = getSocketThread();
+        socketThread.setDaemon(true);
+        socketThread.start();
 
-         synchronized (this){
-             try {
-                 wait();
-             } catch (InterruptedException e) {
-                 ConsoleHelper.writeMessage("An error occurred while running the client.");
-                 return;
-             }
-         }
+        synchronized (this){
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                ConsoleHelper.writeMessage("An error occurred while running the client.");
+                return;
+            }
+        }
 
-         if (clientConnected) ConsoleHelper.writeMessage("A connection has been established. To exit, enter 'exit'.");
-         else ConsoleHelper.writeMessage("An error occurred while running the client.");
+        if (clientConnected) ConsoleHelper.writeMessage("A connection has been established. To exit, enter 'exit'.");
+        else ConsoleHelper.writeMessage("An error occurred while running the client.");
 
-         while (clientConnected){
-             String message = ConsoleHelper.readString();
+        while (clientConnected){
+            String message = ConsoleHelper.readString();
 
-             if (message.equals("exit")){
-                 break;
-             }
+            if (message.equals("exit")){
+                break;
+            }
 
-             if (shouldSendTextFromConsole()){
-                 sendTextMessage(message);
-             }
-         }
+            if (shouldSendTextFromConsole()){
+                sendTextMessage(message);
+            }
+        }
     }
 
     protected String getServerAddress() throws IOException {
@@ -82,7 +101,6 @@ public class Client {
         try {
             connection.send(new Message(MessageType.TEXT, text));
         } catch (IOException e) {
-            ConsoleHelper.writeMessage("Unable to send message");
             clientConnected = false;
         }
     }
