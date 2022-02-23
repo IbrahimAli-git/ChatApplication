@@ -8,6 +8,7 @@ import com.codegym.task.task30.task3008.MessageType;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.Socket;
 
 public class Client {
     protected Connection connection;
@@ -73,6 +74,18 @@ public class Client {
                 } else {
                     throw new IOException("Unexpected MessageType");
                 }
+            }
+        }
+
+        @Override
+        public void run() {
+            try {
+                connection = new Connection(new Socket(getServerAddress(), getServerPort()));
+                clientHandshake();
+                clientMainLoop();
+
+            } catch (IOException | ClassNotFoundException e){
+                notifyConnectionStatusChanged(false);
             }
         }
     }
