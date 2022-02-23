@@ -40,6 +40,41 @@ public class Client {
                 Client.this.notify();
             }
         }
+
+        protected void clientHandshake() throws IOException, ClassNotFoundException {
+            while (true){
+                Message message = connection.receive();
+                MessageType messageType = message.getType();
+
+                if (messageType == MessageType.NAME_REQUEST){
+                   String username =  getUserName();
+                   connection.send(new Message(MessageType.USER_NAME, username));
+                } else if (messageType == MessageType.NAME_ACCEPTED){
+                    notifyConnectionStatusChanged(true);
+                    return;
+                } else {
+                    throw new IOException("IOException(\"Unexpected MessageType\")");
+                }
+            }
+        }
+
+        protected void clientMainLoop() throws IOException, ClassNotFoundException {
+            while (true){
+                Message message = connection.receive();
+                MessageType messageType = message.getType();
+                String data = message.getData();
+
+                if (messageType == MessageType.TEXT){
+                    processIncomingMessage(data);
+                } else if (messageType == MessageType.USER_ADDED){
+                    informAboutAddingNewUser(data);
+                } else if (messageType == MessageType.USER_REMOVED){
+                    informAboutDeletingNewUser(data);
+                } else {
+                    throw new IOException("Unexpected MessageType");
+                }
+            }
+        }
     }
 
 
